@@ -9,8 +9,9 @@
   "scripts": {
     "dev": "node --watch src/server.ts",
     "start": "node src/server.ts",
-    "db:push": "drizzle-kit push",
-    "db:seed": "node src/seed.ts"
+    "db:push": "drizzle-kit push --force",
+    "db:seed": "node src/seed.ts",
+    "db:reset": "rm -f minicommerce.db minicommerce.db-shm minicommerce.db-wal && npm run db:push && npm run db:seed"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
