@@ -197,19 +197,21 @@ export function ProductFormDialog({
               <Label htmlFor="p-price">Prezzo (€) *</Label>
               <Input
                 id="p-price"
-                type="number"
-                min="0"
-                step="0.01"
+                // type="number"
+                type="text"
+                inputMode="decimal"
+                // min="0"
+                // step="0.01"
                 required
                 value={form.price}
                 onChange={(event) => {
                   console.log("event.target.value", event.target.value);
-                  // if (!isNaN(+event.target.value)) {
-                  setForm({
-                    ...form,
-                    price: event.target.value,
-                  });
-                  // }
+                  if (!isNaN(+event.target.value)) {
+                    setForm({
+                      ...form,
+                      price: event.target.value,
+                    });
+                  }
 
                   // setForm({
                   //   brand: form.brand,
