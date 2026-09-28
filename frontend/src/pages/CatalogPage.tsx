@@ -24,6 +24,7 @@ import {
   fetchProducts,
   formatPrice,
   getErrorMessage,
+  type Category,
   type Product,
   type ProductFilters,
 } from '@/lib/api'
@@ -39,7 +40,7 @@ const SORT_OPTIONS: { value: NonNullable<ProductFilters['sort']>; label: string 
 
 export function CatalogPage() {
   const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<string[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
 
   const [search, setSearch] = useState('')
@@ -101,8 +102,8 @@ export function CatalogPage() {
           <SelectContent>
             <SelectItem value={ALL_CATEGORIES}>Tutte le categorie</SelectItem>
             {categories.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
+              <SelectItem key={c.id} value={c.name}>
+                {c.name}
               </SelectItem>
             ))}
           </SelectContent>

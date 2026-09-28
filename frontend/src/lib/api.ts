@@ -1,9 +1,20 @@
 import axios from 'axios'
 
+export interface Category {
+  id: number
+  name: string
+  description: string
+  /** Numero di articoli collegati, calcolato dal backend */
+  productCount: number
+  createdAt: string
+}
+
 export interface Product {
   id: number
   name: string
   description: string
+  categoryId: number
+  /** Nome della categoria, fornito dalla join lato backend */
   category: string
   brand: string
   price: number
@@ -12,7 +23,16 @@ export interface Product {
   createdAt: string
 }
 
-export type ProductInput = Omit<Product, 'id' | 'createdAt'>
+/** In scrittura la categoria si indica con il suo id, non con il nome */
+export interface ProductInput {
+  name: string
+  description: string
+  categoryId: number
+  brand: string
+  price: number
+  stock: number
+  imageUrl: string | null
+}
 
 export interface AuthUser {
   id: number
@@ -48,8 +68,8 @@ export async function fetchProducts(filters: ProductFilters = {}): Promise<Produ
   return data
 }
 
-export async function fetchCategories(): Promise<string[]> {
-  const { data } = await api.get<string[]>('/products/categories')
+export async function fetchCategories(): Promise<Category[]> {
+  const { data } = await api.get<Category[]>('/categories')
   return data
 }
 
