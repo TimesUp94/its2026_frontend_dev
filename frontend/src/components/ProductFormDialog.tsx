@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +46,27 @@ const EMPTY_FORM = {
   imageUrl: "",
 };
 
+type FormField = keyof typeof EMPTY_FORM;
+type FieldErrors = Partial<Record<FormField, string>>;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+function validateForm(form: typeof EMPTY_FORM): FieldErrors {
+  const errors: FieldErrors = {};
+  if (!form.name.trim()) errors.name = "Il nome è obbligatorio.";
+  else if (form.name.trim().length > 32) errors.name = "Il nome non può superare 32 caratteri.";
+  if (!form.categoryId) errors.categoryId = "Seleziona una categoria.";
+  if (form.brand.trim().length > 50) errors.brand = "La marca non può superare 50 caratteri.";
+  if (form.description.trim().length > 500) errors.description = "La descrizione non può superare 500 caratteri.";
+  if (form.price.trim() === "") errors.price = "Il prezzo è obbligatorio.";
+  else if (!Number.isFinite(Number(form.price)) || Number(form.price) < 0) {
+    errors.price = "Inserisci un prezzo valido maggiore o uguale a 0.";
+  }
+  if (form.stock.trim() !== "" && (!/^\d+$/.test(form.stock) || !Number.isSafeInteger(Number(form.stock)))) {
+    errors.stock = "La disponibilità deve essere un numero intero maggiore o uguale a 0.";
+  }
+  return errors;
+}
+
 export function ProductFormDialog({
   open,
   onOpenChange,
@@ -53,12 +74,12 @@ export function ProductFormDialog({
   onSaved,
 }: ProductFormDialogProps) {
   const [form, setForm] = useState(EMPTY_FORM);
+  const [touched, setTouched] = useState<Partial<Record<FormField, boolean>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
+  const [imageError, setImageError] = useState("");
 
-  // Le categorie vengono richieste a ogni apertura del dialog, cosi' l'elenco
-  // riflette sempre quelle presenti sul server (GET /api/categories).
   useEffect(() => {
     if (!open) return;
     setLoadingCategories(true);
@@ -83,29 +104,66 @@ export function ProductFormDialog({
             }
           : EMPTY_FORM,
       );
+      setTouched({});
+      setImageError("");
     }
   }, [open, product]);
 
-  const setField =
-    (field: keyof typeof EMPTY_FORM) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((f) => ({ ...f, [field]: e.target.value }));
+  const fieldErrors = validateForm(form);
+  const visibleError = (field: FormField) => touched[field] ? fieldErrors[field] : undefined;
+  const markTouched = (field: FormField) => setTouched((current) => ({ ...current, [field]: true }));
+  const setField = (field: FormField) => (event: ChangeEvent<HTMLInputElement>) => {
+    setForm((current) => ({ ...current, [field]: event.target.value }));
+    markTouched(field);
+  };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (form.categoryId === "") {
-      toast.error("Seleziona una categoria");
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    markTouched("imageUrl");
+    if (!file.type.startsWith("image/")) {
+      setImageError("Seleziona un file immagine valido.");
+      event.target.value = "";
       return;
     }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setImageError("L’immagine deve pesare al massimo 5 MB.");
+      event.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setForm((current) => ({ ...current, imageUrl: reader.result as string }));
+        setImageError("");
+      }
+    };
+    reader.onerror = () => setImageError("Impossibile leggere il file selezionato.");
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setTouched({
+      name: true,
+      description: true,
+      categoryId: true,
+      brand: true,
+      price: true,
+      stock: true,
+      imageUrl: true,
+    });
+    if (Object.keys(fieldErrors).length > 0 || imageError) return;
+
     setSubmitting(true);
     const input: ProductInput = {
-      name: form.name,
-      description: form.description,
+      name: form.name.trim(),
+      description: form.description.trim(),
       categoryId: Number(form.categoryId),
-      brand: form.brand,
+      brand: form.brand.trim(),
       price: Number(form.price),
       stock: form.stock === "" ? 0 : Number(form.stock),
-      imageUrl: form.imageUrl.trim() === "" ? null : form.imageUrl.trim(),
+      imageUrl: form.imageUrl || null,
     };
     try {
       if (product) {
@@ -124,14 +182,13 @@ export function ProductFormDialog({
     }
   };
 
-  console.log('Valori form attuali:', form)
+  const errorText = (message?: string) => message ? <p className="text-sm text-destructive" role="alert">{message}</p> : null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {product ? "Modifica articolo" : "Nuovo articolo"}
-          </DialogTitle>
+          <DialogTitle>{product ? "Modifica articolo" : "Nuovo articolo"}</DialogTitle>
           <DialogDescription>
             {product
               ? "Aggiorna le informazioni dell’articolo e salva."
@@ -141,121 +198,60 @@ export function ProductFormDialog({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="p-name">Nome *</Label>
-            <Input
-              id="p-name"
-              required
-              value={form.name}
-              onChange={setField("name")}
-            />
+            <Input id="p-name" value={form.name} maxLength={64} aria-invalid={!!visibleError("name")} aria-describedby={visibleError("name") ? "p-name-error" : undefined} onChange={setField("name")} />
+            {visibleError("name") && <p id="p-name-error" className="text-sm text-destructive" role="alert">{visibleError("name")}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="p-category">Categoria *</Label>
-              <Select
-                value={form.categoryId}
-                onValueChange={(value) =>
-                  setForm((f) => ({ ...f, categoryId: value }))
-                }
-              >
-                <SelectTrigger id="p-category" className="w-full">
-                  <SelectValue
-                    placeholder={
-                      loadingCategories
-                        ? "Caricamento..."
-                        : "Scegli una categoria"
-                    }
-                  />
+              <Select value={form.categoryId} onValueChange={(value) => {
+                setForm((current) => ({ ...current, categoryId: value }));
+                markTouched("categoryId");
+              }}>
+                <SelectTrigger id="p-category" className="w-full" aria-invalid={!!visibleError("categoryId")}>
+                  <SelectValue placeholder={loadingCategories ? "Caricamento..." : "Scegli una categoria"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
+                  {categories.map((category) => <SelectItem key={category.id} value={String(category.id)}>{category.name}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {errorText(visibleError("categoryId"))}
             </div>
             <div className="space-y-2">
               <Label htmlFor="p-brand">Marca</Label>
-              <Input
-                id="p-brand"
-                value={form.brand}
-                onChange={setField("brand")}
-              />
+              <Input id="p-brand" value={form.brand} aria-invalid={!!visibleError("brand")} onChange={setField("brand")} />
+              {errorText(visibleError("brand"))}
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="p-description">Descrizione</Label>
-            <Input
-              id="p-description"
-              value={form.description}
-              onChange={setField("description")}
-            />
+            <Input id="p-description" value={form.description} aria-invalid={!!visibleError("description")} onChange={setField("description")} />
+            {errorText(visibleError("description"))}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="p-price">Prezzo (€) *</Label>
-              <Input
-                id="p-price"
-                // type="number"
-                type="text"
-                inputMode="decimal"
-                // min="0"
-                // step="0.01"
-                required
-                value={form.price}
-                onChange={(event) => {
-                  console.log("event.target.value", event.target.value);
-                  if (!isNaN(+event.target.value)) {
-                    setForm({
-                      ...form,
-                      price: event.target.value,
-                    });
-                  }
-
-                  // setForm({
-                  //   brand: form.brand,
-                  //   category: form.category,
-                  //   description: form.description,
-                  //   imageUrl: form.imageUrl,
-                  //   name: form.name,
-                  //   stock: form.stock,
-                  //   price: event.target.value
-                  // })
-                }}
-              />
+              <Input id="p-price" type="text" inputMode="decimal" value={form.price} aria-invalid={!!visibleError("price")} onChange={setField("price")} />
+              {errorText(visibleError("price"))}
             </div>
             <div className="space-y-2">
               <Label htmlFor="p-stock">Disponibilità</Label>
-              <Input
-                id="p-stock"
-                type="number"
-                min="0"
-                step="1"
-                value={form.stock}
-                onChange={setField("stock")}
-              />
+              <Input id="p-stock" type="number" min="0" step="1" value={form.stock} aria-invalid={!!visibleError("stock")} onChange={setField("stock")} />
+              {errorText(visibleError("stock"))}
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="p-image">URL immagine</Label>
-            <Input
-              id="p-image"
-              value={form.imageUrl}
-              onChange={setField("imageUrl")}
-            />
+            <Label htmlFor="p-image">Immagine</Label>
+            <input id="p-image" type="file" accept="image/*" className="sr-only" onChange={handleImageChange} />
+            <Button type="button" variant="outline" asChild>
+              <label htmlFor="p-image" className="cursor-pointer">Scegli immagine</label>
+            </Button>
+            {form.imageUrl && <img src={form.imageUrl} alt="Anteprima immagine articolo" className="mt-2 h-28 w-28 rounded-md border object-cover" />}
+            {errorText(imageError)}
           </div>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Annulla
-            </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting ? "Salvataggio..." : "Salva"}
-            </Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Annulla</Button>
+            <Button type="submit" disabled={submitting}>{submitting ? "Salvataggio..." : "Salva"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
