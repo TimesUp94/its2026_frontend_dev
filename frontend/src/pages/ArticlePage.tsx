@@ -2,6 +2,7 @@ import { ArrowLeft, LoaderCircle, Package, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { AddToCartButton } from "@/components/AddToCartButton";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -154,6 +155,7 @@ export function ArticlePage() {
                 <p className="text-3xl font-bold tracking-tight">
                   {formatPrice(article.price)}
                 </p>
+                <AddToCartButton productId={article.id} stock={article.stock} />
               </CardHeader>
 
               <CardContent className="space-y-6">

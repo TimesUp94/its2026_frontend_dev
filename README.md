@@ -42,7 +42,11 @@ App su http://localhost:5173
 
 - **Catalogo** (`/`): lista articoli con ricerca testuale, filtro per categoria e fascia di prezzo, ordinamento per nome/prezzo/disponibilità/data con direzione asc/desc.
 - **Login** (`/login`): autenticazione email/password, token JWT (scadenza 8h).
+- **Account cliente**: registrazione e accesso cliente dalla pagina Login; il carrello è associato all'account e salvato nel database.
+- **Carrello e ordine** (`/cart`): aggiunta articoli dal catalogo e dal dettaglio, riepilogo, modifica quantità e conferma di un ordine dimostrativo.
 - **Admin** (`/admin`, protetta): tabella articoli con creazione, modifica ed eliminazione.
+
+Il checkout è solo dimostrativo: non verifica né addebita pagamenti e non riduce la disponibilità. Il modulo accetta dati carta di prova; numero completo, scadenza e codice di sicurezza restano nel browser e non vengono inviati al backend. Nel record ordine vengono conservati solo intestatario e ultime quattro cifre.
 
 ## Modello dati
 
@@ -88,3 +92,5 @@ corrisponde a una riga esistente la richiesta viene respinta con 400.
 | `npm run db:push` | Allinea lo schema SQLite a `src/db/schema.ts`. Usa `--force`: su un DB di sviluppo applica anche le modifiche che comportano perdita di dati, senza chiedere conferma |
 | `npm run db:seed` | Svuota le tabelle e reinserisce categorie, articoli e utente admin |
 | `npm run db:reset` | Cancella il file del database ed esegue push + seed da zero |
+
+La registrazione crea account cliente con `isAdmin: false`; non è disponibile un endpoint pubblico per creare amministratori. Dopo le modifiche allo schema, eseguire `npm run db:push` in `backend/` prima di avviare il server.

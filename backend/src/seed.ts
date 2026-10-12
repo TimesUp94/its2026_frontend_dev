@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { db } from './db/index.ts';
-import { categories, products, users } from './db/schema.ts';
+import { cartItems, categories, orderItems, orders, products, users } from './db/schema.ts';
 
 const ADMIN_EMAIL = 'admin@minicommerce.dev';
 const ADMIN_PASSWORD = 'admin123';
@@ -8,6 +8,9 @@ const ADMIN_PASSWORD = 'admin123';
 // L'ordine conta: gli articoli referenziano le categorie con una foreign key,
 // quindi vanno cancellati prima (e inseriti dopo).
 console.log('Pulizia tabelle...');
+db.delete(orderItems).run();
+db.delete(orders).run();
+db.delete(cartItems).run();
 db.delete(products).run();
 db.delete(categories).run();
 db.delete(users).run();

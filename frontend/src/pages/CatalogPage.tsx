@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom'
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { AddToCartButton } from "@/components/AddToCartButton";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -190,15 +191,18 @@ export function CatalogPage() {
                   {product.description}
                 </p>
               </CardContent>
-              <CardFooter className="flex items-center justify-between">
-                <span className="text-lg font-bold">
-                  {formatPrice(product.price)}
-                </span>
-                {product.stock > 0 ? (
-                  <Badge variant="outline">Disponibili: {product.stock}</Badge>
-                ) : (
-                  <Badge variant="destructive">Esaurito</Badge>
-                )}
+              <CardFooter className="flex flex-col items-stretch gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-bold">
+                    {formatPrice(product.price)}
+                  </span>
+                  {product.stock > 0 ? (
+                    <Badge variant="outline">Disponibili: {product.stock}</Badge>
+                  ) : (
+                    <Badge variant="destructive">Esaurito</Badge>
+                  )}
+                </div>
+                <AddToCartButton productId={product.id} stock={product.stock} />
               </CardFooter>
             </Card>
           ))}

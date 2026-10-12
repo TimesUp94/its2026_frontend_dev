@@ -15,8 +15,10 @@ import { getErrorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 
 export function LoginPage() {
-  const { login } = useAuth()
+  const { login, register } = useAuth()
   const navigate = useNavigate()
+  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -25,9 +27,11 @@ export function LoginPage() {
     e.preventDefault()
     setSubmitting(true)
     try {
-      await login(email, password)
-      toast.success('Accesso effettuato')
-      navigate('/admin')
+      const user = mode === 'register'
+        ? await register(name, email, password)
+        : await login(email, password)
+      toast.success(mode === 'register' ? 'Account creato' : 'Accesso effettuato')
+      navigate(user.isAdmin ? '/admin' : '/')
     } catch (err) {
       toast.error(getErrorMessage(err))
     } finally {
@@ -39,13 +43,35 @@ export function LoginPage() {
     <div className="mx-auto flex max-w-6xl justify-center px-4 py-16">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Accesso amministratore</CardTitle>
+          <CardTitle>{mode === 'register' ? 'Crea un account cliente' : 'Accedi'}</CardTitle>
           <CardDescription>
-            Accedi con email e password per gestire il catalogo.
+            {mode === 'register'
+              ? 'Crea il tuo account per salvare il carrello e inviare ordini dimostrativi.'
+              : 'Accedi come cliente per acquistare oppure come amministratore per gestire il catalogo.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 grid grid-cols-2 gap-2">
+            <Button type="button" variant={mode === 'login' ? 'default' : 'outline'} onClick={() => setMode('login')}>
+              Accedi
+            </Button>
+            <Button type="button" variant={mode === 'register' ? 'default' : 'outline'} onClick={() => setMode('register')}>
+              Crea account
+            </Button>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === 'register' && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome</Label>
+                <Input
+                  id="name"
+                  autoComplete="name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -62,14 +88,17 @@ export function LoginPage() {
               <Input
                 id="password"
                 type="password"
-                autoComplete="current-password"
+                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                minLength={mode === 'register' ? 8 : undefined}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? 'Accesso in corso...' : 'Accedi'}
+              {submitting
+                ? mode === 'register' ? 'Creazione account...' : 'Accesso in corso...'
+                : mode === 'register' ? 'Crea account cliente' : 'Accedi'}
             </Button>
           </form>
         </CardContent>
