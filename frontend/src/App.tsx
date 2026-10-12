@@ -4,6 +4,8 @@ import { Toaster } from '@/components/ui/sonner'
 import { AdminPage } from '@/pages/AdminPage'
 import { CatalogPage } from '@/pages/CatalogPage'
 import { LoginPage } from '@/pages/LoginPage'
+import { AboutPage } from './pages/AboutPage'
+import { ArticlePage } from './pages/ArticlePage'
 
 export default function App() {
   return (
@@ -13,6 +15,8 @@ export default function App() {
         <Route path="/" element={<CatalogPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/article/:articleid" element={<ArticlePage />} />
       </Routes>
       <Toaster richColors position="top-right" />
     </div>

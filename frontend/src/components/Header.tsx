@@ -30,6 +30,10 @@ export function Header() {
           </Button>
           <Button asChild variant="ghost" size="sm">
             <Link to="/admin">Admin</Link>
+            {/* <a href="/admin">Admin</a> */}
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/about">About</Link>
           </Button>
           {user && (
             <>

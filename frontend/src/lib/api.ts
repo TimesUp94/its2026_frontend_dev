@@ -68,6 +68,11 @@ export async function fetchProducts(filters: ProductFilters = {}): Promise<Produ
   return data
 }
 
+export async function fetchProduct(productId: number): Promise<Product> {
+  const { data } = await api.get<Product>(`/products/${productId}`)
+  return data
+}
+
 export async function fetchCategories(): Promise<Category[]> {
   const { data } = await api.get<Category[]>('/categories')
   return data
