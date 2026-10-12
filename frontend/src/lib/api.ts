@@ -41,6 +41,33 @@ export interface AuthUser {
   isAdmin: boolean
 }
 
+export interface CartItem {
+  id: number
+  quantity: number
+  product: Product
+  subtotal: number
+}
+
+export interface Cart {
+  items: CartItem[]
+  total: number
+}
+
+export interface MockOrderInput {
+  paymentCardholder: string
+  paymentLastFour: string
+}
+
+export interface MockOrder {
+  id: number
+  status: 'accepted'
+  total: number
+  createdAt: string
+  payment: { method: 'mock-card'; cardholder: string; lastFour: string }
+  items: Array<{ productId: number; productName: string; unitPrice: number; quantity: number }>
+  message: string
+}
+
 export interface ProductFilters {
   search?: string
   category?: string
@@ -52,6 +79,7 @@ export interface ProductFilters {
 
 export const TOKEN_KEY = 'minicommerce_token'
 export const USER_KEY = 'minicommerce_user'
+export const CART_UPDATED_EVENT = 'minicommerce:cart-updated'
 
 export const api = axios.create({ baseURL: '/api' })
 
@@ -97,6 +125,46 @@ export async function login(email: string, password: string) {
     email,
     password,
   })
+  return data
+}
+
+export async function register(name: string, email: string, password: string) {
+  const { data } = await api.post<{ token: string; user: AuthUser }>('/auth/register', {
+    name,
+    email,
+    password,
+  })
+  return data
+}
+
+export async function fetchCart(): Promise<Cart> {
+  const { data } = await api.get<Cart>('/cart')
+  return data
+}
+
+export async function addCartItem(productId: number, quantity = 1): Promise<void> {
+  await api.post('/cart/items', { productId, quantity })
+  window.dispatchEvent(new Event(CART_UPDATED_EVENT))
+}
+
+export async function updateCartItem(productId: number, quantity: number): Promise<void> {
+  await api.patch(`/cart/items/${productId}`, { quantity })
+  window.dispatchEvent(new Event(CART_UPDATED_EVENT))
+}
+
+export async function removeCartItem(productId: number): Promise<void> {
+  await api.delete(`/cart/items/${productId}`)
+  window.dispatchEvent(new Event(CART_UPDATED_EVENT))
+}
+
+export async function clearCart(): Promise<void> {
+  await api.delete('/cart')
+  window.dispatchEvent(new Event(CART_UPDATED_EVENT))
+}
+
+export async function placeMockOrder(input: MockOrderInput): Promise<MockOrder> {
+  const { data } = await api.post<MockOrder>('/orders', input)
+  window.dispatchEvent(new Event(CART_UPDATED_EVENT))
   return data
 }
 

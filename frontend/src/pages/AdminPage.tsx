@@ -41,7 +41,7 @@ export function AdminPage() {
     if (user) reload()
   }, [user, reload])
 
-  if (!user) {
+  if (!user || !user.isAdmin) {
     return <Navigate to="/login" replace />
   }
 

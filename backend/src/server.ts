@@ -3,6 +3,8 @@ import express from 'express';
 import { authRouter } from './routes/auth.ts';
 import { categoriesRouter } from './routes/categories.ts';
 import { productsRouter } from './routes/products.ts';
+import { cartRouter } from './routes/cart.ts';
+import { ordersRouter } from './routes/orders.ts';
 
 const app = express();
 const PORT = Number(process.env.PORT ?? 3001);
@@ -17,6 +19,8 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/products', productsRouter);
+app.use('/api/cart', cartRouter);
+app.use('/api/orders', ordersRouter);
 
 // Gestore errori centralizzato (Express 5 inoltra qui anche gli errori async)
 app.use(
