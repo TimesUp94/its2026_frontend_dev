@@ -1,0 +1,3 @@
+Icone generate da frontend/src/assets/hero.png con:
+  npx tauri icon src/assets/hero.png --fit contain
+(eseguito dentro frontend/). Le cartelle android/ e ios/ sono state rimosse.
