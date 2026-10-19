@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Download, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -21,6 +21,14 @@ import {
   type Product,
 } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import { contaEsauriti } from '@/lib/comandi-tauri'
+import { usaPiattaforma } from '@/lib/piattaforma'
+
+/** Un campo CSV va protetto se contiene il separatore, le virgolette o un newline. */
+function campoCsv(valore: string | number): string {
+  const testo = String(valore)
+  return /[";\r\n]/.test(testo) ? `"${testo.replaceAll('"', '""')}"` : testo
+}
 
 export function AdminPage() {
   const { user } = useAuth()
@@ -28,6 +36,7 @@ export function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Product | null>(null)
+  const piattaforma = usaPiattaforma()
 
   const reload = useCallback(() => {
     setLoading(true)
@@ -66,6 +75,38 @@ export function AdminPage() {
     }
   }
 
+  const handleEsporta = async () => {
+    if (products.length === 0) {
+      toast.error('Nessun articolo da esportare')
+      return
+    }
+    const intestazione = ['id', 'nome', 'categoria', 'marca', 'prezzo', 'disponibilita']
+    const righe = products.map((product) => [
+      product.id,
+      product.name,
+      product.category,
+      product.brand,
+      product.price,
+      product.stock,
+    ])
+    const csv = [intestazione, ...righe]
+      .map((riga) => riga.map(campoCsv).join(';'))
+      .join('\r\n')
+    try {
+      // conta_esauriti e' un comando Rust: in desktop il conteggio arriva da Tauri.
+      const esauriti = await contaEsauriti(products.map((product) => product.stock))
+      const salvato = await piattaforma.esportaCatalogo(csv, 'catalogo.csv')
+      if (!salvato) {
+        toast.info('Esportazione annullata')
+        return
+      }
+      toast.success(`Catalogo esportato: ${products.length} articoli, ${esauriti} esauriti`)
+      await piattaforma.notifica('minicommerce', `Catalogo esportato (${products.length} articoli)`)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
       <div className="flex items-center justify-between gap-4">
@@ -75,10 +116,16 @@ export function AdminPage() {
             Aggiungi, modifica o elimina gli articoli del negozio.
           </p>
         </div>
-        <Button onClick={handleNew}>
-          <Plus className="size-4" />
-          Nuovo articolo
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleEsporta}>
+            <Download className="size-4" />
+            Esporta catalogo
+          </Button>
+          <Button onClick={handleNew}>
+            <Plus className="size-4" />
+            Nuovo articolo
+          </Button>
+        </div>
       </div>
 
       {loading ? (
