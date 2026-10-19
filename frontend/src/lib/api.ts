@@ -81,7 +81,9 @@ export const TOKEN_KEY = 'minicommerce_token'
 export const USER_KEY = 'minicommerce_user'
 export const CART_UPDATED_EVENT = 'minicommerce:cart-updated'
 
-export const api = axios.create({ baseURL: '/api' })
+// Seconda sorpresa: nel pacchetto desktop il proxy di Vite non esiste, quindi
+// serve l'URL assoluto del backend. Sul web la variabile non c'e' e resta '/api'.
+export const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? '/api' })
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(TOKEN_KEY)
