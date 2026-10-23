@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Download, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -21,6 +21,14 @@ import {
   type Product,
 } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import { usaPiattaforma } from '@/lib/piattaforma'
+
+const COLONNE_CSV = ['id', 'nome', 'categoria', 'marca', 'prezzo', 'disponibilità'] as const
+
+/** Excel in italiano si aspetta il punto e virgola; le virgolette si raddoppiano */
+function campoCsv(valore: string): string {
+  return /[";\r\n]/.test(valore) ? `"${valore.replaceAll('"', '""')}"` : valore
+}
 
 export function AdminPage() {
   const { user } = useAuth()
@@ -66,6 +74,34 @@ export function AdminPage() {
     }
   }
 
+  const handleExport = async () => {
+    // Stessa UI nel browser e nel desktop: cambia solo chi salva il file
+    const piattaforma = usaPiattaforma()
+    const righe = [
+      [...COLONNE_CSV],
+      ...products.map((product) => [
+        String(product.id),
+        product.name,
+        product.category,
+        product.brand,
+        product.price.toFixed(2),
+        String(product.stock),
+      ]),
+    ]
+    const csv = righe.map((riga) => riga.map(campoCsv).join(';')).join('\r\n')
+    try {
+      const salvato = await piattaforma.esportaCatalogo(csv, 'catalogo.csv')
+      if (!salvato) return
+      toast.success(`Catalogo esportato (${products.length} articoli)`)
+      await piattaforma.notifica(
+        'Catalogo esportato',
+        `${products.length} articoli salvati in formato CSV`,
+      )
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
       <div className="flex items-center justify-between gap-4">
@@ -75,10 +111,16 @@ export function AdminPage() {
             Aggiungi, modifica o elimina gli articoli del negozio.
           </p>
         </div>
-        <Button onClick={handleNew}>
-          <Plus className="size-4" />
-          Nuovo articolo
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleExport} disabled={products.length === 0}>
+            <Download className="size-4" />
+            Esporta catalogo
+          </Button>
+          <Button onClick={handleNew}>
+            <Plus className="size-4" />
+            Nuovo articolo
+          </Button>
+        </div>
       </div>
 
       {loading ? (
