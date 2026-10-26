@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content'
+import { APP_URL } from '../lib/shop'
+
+/*
+ * I tag del pie' di pagina non sono scritti a mano: si leggono dai post, al momento
+ * della build. Aggiungere un tag a un articolo lo fa comparire qui, in automatico,
+ * su tutte le pagine.
+ */
+const post = await getCollection('blog', ({ data }) => !data.bozza)
+const tag = [...new Set(post.flatMap((articolo) => articolo.data.tags))].sort()
+const anno = new Date().getFullYear()
+---
+
+<footer class="mt-16 border-t bg-card">
+  <div class="mx-auto grid max-w-5xl gap-8 px-4 py-10 sm:grid-cols-3">
+    <div class="space-y-2">
+      <p class="font-semibold">Il blog di minicommerce</p>
+      <p class="text-sm text-muted-foreground">
+        Guide all'acquisto e appunti di bottega. Pagine generate una volta, servite
+        come file: per leggere del testo non serve eseguire un'applicazione.
+      </p>
+    </div>
+    <nav aria-label="Argomenti" class="space-y-2">
+      <p class="font-semibold">Argomenti</p>
+      <ul class="space-y-1 text-sm text-muted-foreground">
+        {
+          tag.map((nome) => (
+            <li>
+              <a class="hover:text-foreground hover:underline" href={`/tag/${nome}`}>#{nome}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <nav aria-label="Collegamenti" class="space-y-2">
+      <p class="font-semibold">Collegamenti</p>
+      <ul class="space-y-1 text-sm text-muted-foreground">
+        <li><a class="hover:text-foreground hover:underline" href={APP_URL}>Il negozio</a></li>
+        <li><a class="hover:text-foreground hover:underline" href="/rss.xml">Feed RSS</a></li>
+        <li>
+          <a class="hover:text-foreground hover:underline" href="/sitemap-index.xml">sitemap</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  <div class="border-t py-4 text-center text-xs text-muted-foreground">
+    {anno} minicommerce - progetto del corso di Frontend Development, ITS
+  </div>
+</footer>

@@ -1,0 +1,43 @@
+---
+import { APP_URL } from '../lib/shop'
+
+/*
+ * L'intestazione: HTML e nient'altro.
+ *
+ * Nel negozio l'equivalente e' un componente React che conosce l'utente, conta gli
+ * articoli nel carrello e si aggiorna da solo. Qui non serve niente di tutto questo:
+ * un blog e' uguale per tutti, e il link al negozio e' un <a> che porta altrove.
+ */
+const percorso = Astro.url.pathname
+const attiva = (inizio: string) =>
+  inizio === '/' ? percorso === '/' : percorso.startsWith(inizio)
+---
+
+<header class="sticky top-0 z-10 border-b bg-card/95 backdrop-blur">
+  <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
+    <a href="/" class="text-lg font-semibold">
+      minicommerce <span class="text-muted-foreground">/ blog</span>
+    </a>
+    <nav aria-label="Navigazione del blog" class="flex items-center gap-1 text-sm">
+      <a
+        href="/"
+        class:list={['rounded-md px-3 py-2 hover:bg-accent', { 'font-medium': attiva('/') }]}
+        aria-current={attiva('/') ? 'page' : undefined}
+      >
+        Articoli
+      </a>
+      <a
+        href="/tag/guide"
+        class:list={['rounded-md px-3 py-2 hover:bg-accent', { 'font-medium': attiva('/tag') }]}
+      >
+        Guide
+      </a>
+      <a
+        class="ml-2 inline-flex items-center rounded-md bg-primary px-3 py-2 text-primary-foreground hover:opacity-90"
+        href={APP_URL}
+      >
+        Vai al negozio
+      </a>
+    </nav>
+  </div>
+</header>

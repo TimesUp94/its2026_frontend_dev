@@ -51,6 +51,12 @@ export function Header() {
           <Button asChild variant="ghost" size="sm">
             <Link to="/about">About</Link>
           </Button>
+          {/* Il blog e' un altro sito, non una rotta di questa applicazione: serve
+              un <a> vero, perche' <Link> cercherebbe la pagina dentro il router.
+              VITE_BLOG_URL permette di spostarlo senza toccare il codice. */}
+          <Button asChild variant="ghost" size="sm">
+            <a href={import.meta.env.VITE_BLOG_URL ?? 'http://localhost:4321'}>Blog</a>
+          </Button>
           {user && !user.isAdmin ? (
             <Button asChild variant="outline" size="sm">
               <Link to="/cart" aria-label={`Carrello, ${cartCount} articoli`}>

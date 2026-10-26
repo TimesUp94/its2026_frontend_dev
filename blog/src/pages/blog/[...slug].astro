@@ -1,0 +1,89 @@
+---
+import { getCollection, render } from 'astro:content'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import ProductCard from '../../components/ProductCard.astro'
+import { formatDate, getProducts } from '../../lib/shop'
+
+/*
+ * UNA PAGINA PER OGNI POST, decisa in fase di build.
+ *
+ * getStaticPaths e' il cuore di un generatore di siti statici: dice "ecco l'elenco
+ * delle pagine che devono esistere". Astro le costruisce tutte, una per una, e il
+ * risultato e' una cartella di file .html. Non c'e' nessun server che renderizza
+ * niente quando arriva un lettore.
+ */
+export async function getStaticPaths() {
+  const post = await getCollection('blog', ({ data }) => !data.bozza)
+  return post.map((articolo) => ({
+    params: { slug: articolo.id },
+    props: { articolo },
+  }))
+}
+
+const { articolo } = Astro.props
+
+// render() trasforma il Markdown in un componente: il lavoro avviene adesso, in
+// fase di build, non nel browser del lettore.
+const { Content } = await render(articolo)
+
+// I prodotti citati nel frontmatter, letti dall'API del negozio durante la build.
+const prodotti = await getProducts(articolo.data.prodotti)
+---
+
+<BaseLayout
+  title={articolo.data.title}
+  description={articolo.data.description}
+  articolo={{
+    pubblicato: articolo.data.pubDate,
+    autore: articolo.data.author,
+    tag: articolo.data.tags,
+  }}
+>
+  <article class="mx-auto max-w-5xl px-4 py-12">
+    <header class="space-y-4 border-b pb-8">
+      <p class="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+        <time datetime={articolo.data.pubDate.toISOString()}>
+          {formatDate(articolo.data.pubDate)}
+        </time>
+        <span>-</span>
+        <span>{articolo.data.author}</span>
+      </p>
+      <h1 class="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+        {articolo.data.title}
+      </h1>
+      <p class="max-w-2xl text-lg text-muted-foreground">{articolo.data.description}</p>
+      <ul class="flex flex-wrap gap-2">
+        {
+          articolo.data.tags.map((tag) => (
+            <li>
+              <a class="rounded-full border px-3 py-1 text-xs hover:bg-accent" href={`/tag/${tag}`}>
+                #{tag}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </header>
+
+    <div class="prosa mt-8">
+      <Content />
+    </div>
+
+    {
+      prodotti.length > 0 && (
+        <section class="mt-12 space-y-4 border-t pt-8" aria-labelledby="citati">
+          <h2 id="citati" class="text-xl font-semibold">Gli articoli di cui si parla</h2>
+          <p class="text-sm text-muted-foreground">
+            Nome e disponibilita&apos; sono quelli del giorno di pubblicazione; il prezzo lo
+            chiediamo al negozio mentre leggete.
+          </p>
+          {prodotti.map((prodotto) => <ProductCard prodotto={prodotto} />)}
+        </section>
+      )
+    }
+
+    <nav class="mt-12 border-t pt-6">
+      <a class="text-sm underline underline-offset-4" href="/">Torna a tutti gli articoli</a>
+    </nav>
+  </article>
+</BaseLayout>
