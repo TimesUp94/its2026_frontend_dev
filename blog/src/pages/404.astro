@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+/*
+ * Astro costruisce questa pagina come 404.html dentro dist/. Quasi tutti gli
+ * hosting statici la servono da soli quando un indirizzo non corrisponde a nessun
+ * file, con il vero stato 404: una riga di configurazione in meno da scrivere.
+ */
+---
+
+<BaseLayout
+  title="Pagina non trovata"
+  description="L'indirizzo richiesto non corrisponde a nessun articolo del blog di minicommerce."
+>
+  <div class="mx-auto flex max-w-xl flex-col items-center gap-4 px-4 py-24 text-center">
+    <p class="font-mono text-sm text-muted-foreground">Errore 404</p>
+    <h1 class="text-3xl font-bold tracking-tight">Questo articolo non esiste</h1>
+    <p class="text-muted-foreground">
+      Forse e&apos; stato spostato, o forse l&apos;indirizzo ha un errore di battitura.
+    </p>
+    <a
+      class="mt-2 inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
+      href="/"
+    >
+      Vai a tutti gli articoli
+    </a>
+  </div>
+</BaseLayout>
