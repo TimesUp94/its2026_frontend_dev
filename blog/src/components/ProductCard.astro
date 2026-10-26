@@ -1,0 +1,40 @@
+---
+import PrezzoLive from './PrezzoLive'
+import { APP_URL, type Product } from '../lib/shop'
+
+/*
+ * La scheda di un articolo del catalogo, dentro un post.
+ *
+ * Nome, marca, categoria e disponibilita' sono scritti nell'HTML al momento della
+ * build: sono dati che cambiano raramente e che devono esserci anche per chi legge
+ * senza JavaScript. Il prezzo no: quello e' l'unica cosa che vale la pena chiedere
+ * al negozio nel momento della visita, e lo fa l'isola PrezzoLive.
+ */
+interface Props {
+  prodotto: Product
+}
+
+const { prodotto } = Astro.props
+---
+
+<article class="flex flex-col gap-3 rounded-xl border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+  <div class="space-y-1">
+    <p class="text-xs uppercase tracking-wide text-muted-foreground">
+      {prodotto.category}{prodotto.brand ? ` - ${prodotto.brand}` : ''}
+    </p>
+    <h3 class="font-semibold leading-snug">{prodotto.name}</h3>
+    <p class="text-xs text-muted-foreground">
+      {prodotto.stock > 0 ? `${prodotto.stock} pezzi disponibili alla pubblicazione` : 'Esaurito'}
+    </p>
+  </div>
+
+  <div class="flex items-center gap-4 sm:flex-col sm:items-end sm:gap-2">
+    <PrezzoLive productId={prodotto.id} prezzoAlBuild={prodotto.price} client:visible />
+    <a
+      class="inline-flex h-9 shrink-0 items-center rounded-md border px-3 text-sm hover:bg-accent"
+      href={`${APP_URL}/article/${prodotto.id}`}
+    >
+      Vai alla scheda
+    </a>
+  </div>
+</article>
