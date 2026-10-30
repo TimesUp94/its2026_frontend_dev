@@ -8,7 +8,7 @@ Questo file sta su `master`. I rami restano **master più un solo commit di merg
 come dicono le slide, quindi dopo `git switch web/astro` non lo vedrete più: leggetelo
 da `master`, o da GitHub.
 
-Le slide (`modulo-04-vetrina-ssr.pdf`, 53 pagine) **non sono in questo repository**:
+Le slide (`modulo-04-vetrina-ssr.pdf`, 57 pagine) **non sono in questo repository**:
 stanno nel progetto LaTeX del corso. Portatele a parte.
 
 ---
@@ -138,7 +138,7 @@ il punto 5 del laboratorio, che lo trovino loro).
 
 | Quanto | Cosa |
 |---|---|
-| 45-55 min | Le 11 slide della sottosezione Astro, con le due dimostrazioni dentro |
+| 45-55 min | Le 12 slide della sottosezione Astro, con le due dimostrazioni dentro |
 | 1h30-2h | **Laboratorio 4b**: i passi stanno in `docs/WEB-ASTRO.md` §6, nell'ordine giusto |
 | ~20 min | La sottosezione PHP/CMS/panorama: il "ma il negozio ha già un WordPress" |
 | ~15 min | Le due slide sui rami, e le domande di verifica |
@@ -147,7 +147,29 @@ Dipendenza da sapere: la metà Astro si appoggia a quella Next in due punti (la 
 "e quando cambia un prezzo?" è `revalidateTag`, e la tabella finale confronta i due). Se la
 vetrina Next non è ancora stata spiegata, quella viene prima.
 
-## 6. Se finite presto
+## 6. `singleton/`, se viene fuori il discorso
+
+Sul ramo `web/nextjs` c'è anche `singleton/`: la stessa applicazione del modulo 1
+(catalogo, login, carrello, admin) in un progetto Next solo, **senza API REST** --
+i Server Component interrogano SQLite con Drizzle e le scritture sono Server Action.
+Nelle slide sono tre pagine dentro la metà Next, e la slide *E Astro, tutto in uno?*
+risponde alla stessa domanda per Astro.
+
+Non serve per la lezione su Astro, ma se volete mostrarlo dal vivo ha un database suo
+e gira sulla **porta 3000**, quindi non pesta i piedi a Express né a Vite:
+
+```bash
+git switch web/nextjs
+cd singleton && npm install && npm run db:push && npm run db:seed && npm run dev
+```
+
+Il confronto che vale la pena fare ad alta voce: `singleton/` guadagna un processo
+solo, i tipi scritti una volta e la sessione in un cookie `httpOnly`; perde l'API
+pubblica, cioè esattamente ciò su cui vivono Electron, Capacitor e le app native dei
+moduli 2, 3 e 5. Con `DATABASE_URL=../backend/minicommerce.db` le due versioni
+lavorano sugli stessi dati.
+
+## 7. Se finite presto
 
 Il capitolo successivo è il **modulo 5, "App native"**: 37 pagine, e il suo laboratorio
 richiede Android Studio, Xcode o .NET. Non si comincia nell'ultima mezz'ora.
@@ -158,7 +180,7 @@ gli agenti di programmazione*, dove il costo della N-esima piattaforma crolla e 
 costo di specificare e verificare. Fermatevi su *Cosa resta difficile (e vostro)* e chiudete
 chiedendo di installare Android Studio per la volta dopo. Sono 40 minuti autosufficienti.
 
-## 7. Cosa può andare storto
+## 8. Cosa può andare storto
 
 | Sintomo | Causa e rimedio |
 |---|---|
@@ -169,7 +191,7 @@ chiedendo di installare Android Studio per la volta dopo. Sono 40 minuti autosuf
 | La voce "Blog" nell'header del negozio non c'è | Siete su `master`: `git switch web/astro` |
 | `npx serve` chiede di scaricare il pacchetto | Serve rete la prima volta; in alternativa `npm run preview` |
 
-## 8. Dove sta scritto il resto
+## 9. Dove sta scritto il resto
 
 - `docs/WEB-ASTRO.md` — la guida del ramo: struttura, esperimenti in ordine, problemi noti.
 - `scripts/setup-astro.mjs` — la trasformazione completa da `master`, idempotente, stampa
