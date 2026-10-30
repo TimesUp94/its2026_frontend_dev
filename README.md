@@ -4,6 +4,8 @@ Piccolo e-commerce di articoli informatici (PC, mouse, smartphone, accessori…)
 
 - **Backend**: Node.js 24 (TypeScript nativo), Express 5.2.1, SQLite + Drizzle ORM, auth JWT email/password
 - **Frontend**: React 19.3 (Vite), ShadCN UI, Tailwind CSS v4, Axios, React Router
+- **singleton/**: la stessa applicazione in un solo progetto Next.js 16, senza
+  API REST in mezzo: è Next a interrogare SQLite (vedi `singleton/README.md`)
 
 ## Requisiti
 

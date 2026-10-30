@@ -2,7 +2,7 @@
 
 ## Project Structure
 
-This repository contains a full-stack mini-commerce app. `backend/src/` holds the Express API, route handlers, auth middleware, SQLite/Drizzle schema and seed data. `frontend/src/` contains the React app, pages, shared components, API/auth helpers, styles and assets; static files live in `frontend/public/`. The project currently has no dedicated test directory or test runner.
+This repository contains a full-stack mini-commerce app. `backend/src/` holds the Express API, route handlers, auth middleware, SQLite/Drizzle schema and seed data. `frontend/src/` contains the React app, pages, shared components, API/auth helpers, styles and assets; static files live in `frontend/public/`. `singleton/` holds an alternative, self-contained Next.js build of the same app that queries SQLite directly from Server Components and Server Actions, with no REST API in between; its own schema lives in `singleton/lib/db/schema.ts` and all writes go through `singleton/server/actions/`. The project currently has no dedicated test directory or test runner.
 
 ## Build, Test, and Development
 
@@ -11,6 +11,7 @@ Use Node.js 24 or newer. Install dependencies separately in `backend/` and `fron
 - Backend: `npm run dev` starts the watch-mode API on port 3001. Run `npm run db:push` to apply the Drizzle schema and `npm run db:seed` to load demo data and the admin account.
 - Frontend: `npm run dev` starts Vite on port 5173 (with `/api` proxied to the backend). `npm run build` type-checks and creates the production bundle; `npm run lint` runs Oxlint.
 - `npm run db:reset` in `backend/` deletes and rebuilds the local database, including reseeding it. Use only when you intend to discard local data.
+- singleton: `npm run dev` starts Next.js on port 3000. It has its own `db:push`, `db:seed` and `db:reset`, acting on `singleton/minicommerce.db` unless `DATABASE_URL` points elsewhere. `npm run build` and `npm run lint` validate it.
 
 There are no automated test scripts configured at present; run the frontend build and lint checks when validating UI changes, and manually exercise affected API flows.
 
