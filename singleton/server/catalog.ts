@@ -77,6 +77,7 @@ function selectProducts() {
 export function listProducts(filters: ProductFilters = {}): ProductRow[] {
   const conditions: SQL[] = []
 
+  console.log('Prendendo la lista di prodotti')
   const search = filters.search?.trim()
   if (search) {
     const pattern = `%${search}%`

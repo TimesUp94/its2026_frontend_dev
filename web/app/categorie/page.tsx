@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 }
 
 export default async function CategoriesPage() {
+  console.log('CategoriesPage renderizzato')
   const categorie = await getCategories()
 
   return (
