@@ -1,0 +1,137 @@
+/*
+ * Gli stessi colori del negozio e della vetrina: un progetto, un'identita'.
+ * Il tema scuro e' solo prefers-color-scheme, quindi non costa un byte di
+ * JavaScript. In un sito di contenuti e' esattamente cio' che serve.
+ */
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --radius: 0.625rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.371 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --border: oklch(1 0 0 / 12%);
+    --ring: oklch(0.556 0 0);
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * La tipografia del Markdown, scritta a mano.
+ *
+ * Esiste il plugin @tailwindcss/typography e in un progetto vero si usa. Qui no,
+ * di proposito: sono trenta righe di CSS, e vedere quali sono gli elementi che il
+ * Markdown produce davvero vale piu' di una dipendenza in piu'.
+ */
+@layer components {
+  .prosa {
+    max-width: 68ch;
+    line-height: 1.75;
+  }
+  .prosa > * + * {
+    margin-top: 1.1em;
+  }
+  .prosa h2 {
+    margin-top: 2.2em;
+    font-size: 1.4rem;
+    font-weight: 650;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .prosa h3 {
+    margin-top: 1.8em;
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+  .prosa strong {
+    font-weight: 650;
+    color: var(--foreground);
+  }
+  .prosa a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .prosa ul,
+  .prosa ol {
+    padding-left: 1.4em;
+  }
+  .prosa ul {
+    list-style: disc;
+  }
+  .prosa ol {
+    list-style: decimal;
+  }
+  .prosa li + li {
+    margin-top: 0.4em;
+  }
+  .prosa blockquote {
+    border-left: 3px solid var(--border);
+    padding-left: 1em;
+    font-style: italic;
+    color: var(--muted-foreground);
+  }
+  .prosa code {
+    background-color: var(--muted);
+    border-radius: 0.3rem;
+    padding: 0.15em 0.35em;
+    font-size: 0.9em;
+  }
+  .prosa pre {
+    background-color: var(--muted);
+    border-radius: var(--radius);
+    padding: 1em;
+    overflow-x: auto;
+  }
+  .prosa pre code {
+    background: none;
+    padding: 0;
+  }
+}

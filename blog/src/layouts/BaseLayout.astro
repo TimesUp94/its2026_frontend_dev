@@ -1,0 +1,102 @@
+---
+import '../styles/global.css'
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+
+/*
+ * Il guscio di ogni pagina.
+ *
+ * In un componente .astro quello che sta fra i tre trattini gira SOLO in fase di
+ * build: qui si leggono dati, si calcolano indirizzi, si decide cosa stampare.
+ * Quello che sta sotto e' il modello, e diventa HTML. Non esiste un equivalente di
+ * useState: se serve stato, serve un'isola (vedi PrezzoLive.tsx).
+ */
+interface Props {
+  title: string
+  description: string
+  /** Presente solo nelle pagine dei post: cambia i metadati e i dati strutturati. */
+  articolo?: { pubblicato: Date; autore: string; tag: string[] }
+  /** La home non vuole il suffisso nel titolo. */
+  titoloEsatto?: boolean
+}
+
+const { title, description, articolo, titoloEsatto = false } = Astro.props
+
+const canonico = new URL(Astro.url.pathname, Astro.site)
+const titolo = titoloEsatto ? title : `${title} | Blog minicommerce`
+
+const datiStrutturati = articolo
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: title,
+      description,
+      datePublished: articolo.pubblicato.toISOString(),
+      author: { '@type': 'Organization', name: articolo.autore },
+      keywords: articolo.tag.join(', '),
+      inLanguage: 'it-IT',
+      mainEntityOfPage: { '@type': 'WebPage', '@id': canonico.href },
+    }
+  : {
+      '@context': 'https://schema.org',
+      '@type': 'Blog',
+      name: 'Il blog di minicommerce',
+      description,
+      url: new URL('/', Astro.site).href,
+      inLanguage: 'it-IT',
+    }
+---
+
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titolo}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonico.href} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Il feed RSS non e' nostalgia: e' il modo in cui un blog si fa seguire
+         senza algoritmi in mezzo, ed e' tre righe di codice (vedi pages/rss.xml.ts). -->
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Il blog di minicommerce"
+      href={new URL('rss.xml', Astro.site).href}
+    />
+
+    <meta property="og:type" content={articolo ? 'article' : 'website'} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonico.href} />
+    <meta property="og:locale" content="it_IT" />
+    <meta property="og:site_name" content="Blog minicommerce" />
+    <meta name="twitter:card" content="summary_large_image" />
+    {
+      articolo && (
+        <meta property="article:published_time" content={articolo.pubblicato.toISOString()} />
+      )
+    }
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(datiStrutturati).replace(/</g, '\\u003c')}
+    />
+  </head>
+  <body class="flex min-h-dvh flex-col">
+    <a
+      href="#contenuto"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-20 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
+    >
+      Salta al contenuto
+    </a>
+    <Header />
+    <main id="contenuto" class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
